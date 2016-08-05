@@ -1,4 +1,4 @@
-BackendBundle\Entity\Comments:
+BackendBundle\Entity\Comment:
     type: entity
     table: comments
     indexes:
@@ -30,7 +30,7 @@ BackendBundle\Entity\Comments:
             column: created_at
     manyToOne:
         video:
-            targetEntity: Videos
+            targetEntity: Video
             cascade: {  }
             fetch: LAZY
             mappedBy: null
@@ -40,7 +40,7 @@ BackendBundle\Entity\Comments:
                     referencedColumnName: id
             orphanRemoval: false
         user:
-            targetEntity: Users
+            targetEntity: User
             cascade: {  }
             fetch: LAZY
             mappedBy: null
