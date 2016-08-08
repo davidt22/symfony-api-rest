@@ -3,6 +3,7 @@
 namespace AppBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints\Email;
@@ -39,13 +40,15 @@ class DefaultController extends Controller
     public function loginAction(Request $request)
     {
         $helpersService = $this->get('app.helpers');
+        $jwatAuthService = $this->get('app.jwt_auth');
         $json = $request->get('json');
 
         if($json){
             $params = json_decode($json);
 
-            $email = $params->email ? $params->email : null;
-            $password = $params->password ? $params->password : null;
+            $email = isset($params->email) ? $params->email : null;
+            $password = isset($params->password) ? $params->password : null;
+            $getHash = isset($params->getHash) ? $params->getHash : null;
 
             $emailContraint = new Email();
             $emailContraint->message = 'Email not valid';
@@ -53,13 +56,19 @@ class DefaultController extends Controller
             $validateEmail = $this->get('validator')->validate($email, $emailContraint);
 
             if(count($validateEmail) == 0 && $password != null){
-                echo 'Data Success';
+
+                if($getHash == null){
+                    $signup = $jwatAuthService->signup($email, $password);
+                }else{
+                    $signup = $jwatAuthService->signup($email, $password, true);
+                }
+
+                return new JsonResponse($signup);
             }else{
-                echo 'Data incorrect';
+                return $helpersService->parseJson(array('status' => 'error', 'data' => 'Login not valid'));
             }
         }else{
-            echo 'Send JSON with POST';
-                die();
+            return $helpersService->parseJson(array('status' => 'error', 'data' => 'Send Json with POST'));
         }
 
     }

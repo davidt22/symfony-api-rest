@@ -10,3 +10,7 @@ services:
     app.helpers:
         class: AppBundle\Services\Helpers
         arguments: [""]
+
+    app.jwt_auth:
+        class: AppBundle\Services\JWTAuth
+        arguments: ["@doctrine.orm.entity_manager"]
