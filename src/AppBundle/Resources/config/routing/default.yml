@@ -11,4 +11,4 @@ default_login:
 pruebas:
     path: /pruebas
     defaults: { _controller: "AppBundle:Default:pruebas" }
-    methods: GET
+    methods: POST
