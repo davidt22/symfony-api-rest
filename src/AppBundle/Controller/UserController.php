@@ -44,7 +44,9 @@ class UserController extends Controller
                 $user->setEmail($email);
                 $user->setName($name);
                 $user->setSurname($surname);
-                $user->setPassword($password);
+
+                $pwd = hash('sha256', $password);
+                $user->setPassword($pwd);
 
                 $em = $this->getDoctrine()->getManager();
                 $issetUser = $em->getRepository('BackendBundle:User')->findBy(array('email' => $email));
@@ -55,6 +57,7 @@ class UserController extends Controller
 
                     $data = array(
                         'status' => 'success',
+                        'code' => 200,
                         'msg' => 'New User created'
                     );
                 }else{
