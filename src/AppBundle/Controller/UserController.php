@@ -4,6 +4,7 @@ namespace AppBundle\Controller;
 
 use BackendBundle\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints\Email;
 
@@ -156,5 +157,66 @@ class UserController extends Controller
         }
 
         return $helpersService->parseJson($data);
+    }
+
+    public function uploadImageAction(Request $request)
+    {
+        $helpers = $this->get('app.helpers');
+
+        $hash = $request->get('authorization');
+        $authCheck = $helpers->authCheck($hash);
+
+        if($authCheck){
+            $identity = $helpers->authCheck($hash, true);
+
+            $em = $this->getDoctrine()->getManager();
+            $user = $em->getRepository('BackendBundle:User')->findOneBy(array(
+                'id' => $identity->sub
+            ));
+
+            //upload file
+            /** @var File $file */
+            $file = $request->files->get('image');
+
+            if(!empty($file)) {
+                $ext = $file->guessExtension();
+                if (in_array($ext, array('jpeg', 'jpg', 'gif', 'png'))){
+
+                    $fileName = time() . '.' . $ext;
+                    $file->move('uploads/users', $fileName);
+
+                    $user->setImage($fileName);
+                    $em->persist($user);
+                    $em->flush();
+
+                    $data = array(
+                        'status' => 'success',
+                        'code' => 200,
+                        'msg' => 'Upload image success'
+                    );
+                }else {
+                    $data = array(
+                        'status' => 'error',
+                        'code' => 400,
+                        'msg' => 'Extension image not valid'
+                    );
+                }
+            }else{
+                $data = array(
+                    'status' => 'error',
+                    'code' => 400,
+                    'msg' => 'Imge not uploaded'
+                );
+            }
+
+        }else{
+            $data = array(
+                'status' => 'error',
+                'code' => 400,
+                'msg' => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->parseJson($data);
     }
 }
