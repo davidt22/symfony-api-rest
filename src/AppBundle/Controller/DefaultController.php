@@ -36,7 +36,6 @@ class DefaultController extends Controller
         $check = $helpersService->authCheck($hash);
 
         var_dump($check);
-        die();
 //        $em = $this->getDoctrine()->getManager();
 //        $users = $em->getRepository('BackendBundle:User')->findAll();
 //        return $helpersService->parseJson($users);
