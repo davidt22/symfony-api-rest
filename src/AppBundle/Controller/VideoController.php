@@ -171,4 +171,99 @@ class VideoController extends Controller
 
         return $helpers->parseJson($data);
     }
+
+    public function uploadAction(Request $request, $id)
+    {
+        $helpers = $this->get('app.helpers');
+
+        $hash = $request->get('authorization');
+        $authCheck = $helpers->authCheck($hash);
+
+        if($authCheck) {
+            $identity = $helpers->authCheck($hash, true);
+            $json = $request->get('json');
+
+            $videoId = $id;
+            $em = $this->getDoctrine()->getManager();
+            $video = $em->getRepository('BackendBundle:Video')->findOneBy(array(
+                'id' => $videoId
+            ));
+
+            if($videoId && isset($identity->sub) && $identity->sub == $video->getUser()->getId()){
+                $file = $request->files->get('image');
+                $fileVideo = $request->files->get('video');
+
+                if($file && !empty($file)){
+                    $ext = $file->guessExtension();
+
+                    if(in_array($ext, array('jpeg', 'jpg', 'png'))) {
+                        $fileName = time() . '.' . $ext;
+                        $pathOfFile = 'uploads/video_images/video_' . $videoId;
+                        $file->move($pathOfFile, $fileName);
+
+                        $video->setImage($fileName);
+
+                        $em->persist($video);
+                        $em->flush();
+
+                        $data = array(
+                            'status' => 'success',
+                            'code' => 200,
+                            'msg' => 'Image file for video uploaded'
+                        );
+                    }else{
+                        $data = array(
+                            'status' => 'error',
+                            'code' => 400,
+                            'msg' => 'Format image not valid'
+                        );
+                    }
+                }else{
+                    if($fileVideo && !empty($fileVideo)){
+                        $ext = $fileVideo->guessExtension();
+
+                        if(in_array($ext, array('mp4', 'avi'))) {
+
+                            $fileName = time() . '.' . $ext;
+                            $pathOfFile = 'uploads/video_files/video_' . $videoId;
+                            $fileVideo->move($pathOfFile, $fileName);
+
+                            $video->setVideoPath($fileName);
+
+                            $em->persist($video);
+                            $em->flush();
+
+                            $data = array(
+                                'status' => 'success',
+                                'code' => 200,
+                                'msg' => 'Video file uploaded'
+                            );
+                        }else{
+                            $data = array(
+                                'status' => 'error',
+                                'code' => 400,
+                                'msg' => 'Format video not valid'
+                            );
+                        }
+                    }
+                }
+
+            }else{
+                $data = array(
+                    'status' => 'error',
+                    'code' => 400,
+                    'msg' => 'Video updated error, you not owner'
+                );
+            }
+
+        }else{
+            $data = array(
+                'status' => 'error',
+                'code' => 400,
+                'msg' => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->parseJson($data);
+    }
 }
