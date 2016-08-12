@@ -3,6 +3,9 @@
 namespace AppBundle\Controller;
 
 use BackendBundle\Entity\Video;
+use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManager;
+use Knp\Component\Pager\Pagination\PaginationInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -263,6 +266,35 @@ class VideoController extends Controller
                 'msg' => 'Authorization not valid'
             );
         }
+
+        return $helpers->parseJson($data);
+    }
+
+    public function videosAction(Request $request)
+    {
+        $helpers = $this->get('app.helpers');
+
+        /** @var EntityManager $em */
+        $em = $this->getDoctrine()->getManager();
+        $dql = 'SELECT v FROM BackendBundle:Video v ORDER BY v.id DESC';
+
+        $query = $em->createQuery($dql);
+
+        $page = $request->query->getInt('page', 1);
+        $paginator = $this->get('knp_paginator');
+        $itemsPerPage = 6;
+
+        $pagination = $paginator->paginate($query, $page, $itemsPerPage);
+        $totalItemsCount = $pagination->getTotalItemCount();
+
+        $data = array(
+            'status' => 'success',
+            'total_items_count' => $totalItemsCount,
+            'page_actual' => $page,
+            'items_per_page' => $itemsPerPage,
+            'total_pages' => ceil($totalItemsCount / $itemsPerPage),
+            'data' => $pagination
+        );
 
         return $helpers->parseJson($data);
     }
