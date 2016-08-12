@@ -273,11 +273,10 @@ class VideoController extends Controller
     public function videosAction(Request $request)
     {
         $helpers = $this->get('app.helpers');
-
         /** @var EntityManager $em */
         $em = $this->getDoctrine()->getManager();
-        $dql = 'SELECT v FROM BackendBundle:Video v ORDER BY v.id DESC';
 
+        $dql = 'SELECT v FROM BackendBundle:Video v ORDER BY v.id DESC';
         $query = $em->createQuery($dql);
 
         $page = $request->query->getInt('page', 1);
@@ -298,4 +297,51 @@ class VideoController extends Controller
 
         return $helpers->parseJson($data);
     }
+
+    public function lastVideosACtion(Request $request)
+    {
+        $helpers = $this->get('app.helpers');
+        /** @var EntityManager $em */
+        $em = $this->getDoctrine()->getManager();
+
+        $dql = 'SELECT v FROM BackendBundle:Video v ORDER BY v.createdAt DESC';
+        $query = $em->createQuery($dql)->setMaxResults(5);
+        $videos = $query->getResult();
+
+        $data = array(
+            'status' => 'success',
+            'data' => $videos
+        );
+
+        return $helpers->parseJson($data);
+    }
+
+    public function videoAction(Request $request, $id = null)
+    {
+        $helpers = $this->get('app.helpers');
+        /** @var EntityManager $em */
+        $em = $this->getDoctrine()->getManager();
+
+        $video = $em->getRepository('BackendBundle:Video')->findOneBy(array(
+            'id' => $id
+        ));
+
+        $data = array(
+            'status' => 'error',
+            'code' => 400,
+            'msg' => 'Video not exists'
+        );
+
+        if($video){
+            $data = array(
+                'status' => 'success',
+                'code' => 200,
+                'data' => $video
+            );
+        }
+
+        return $helpers->parseJson($data);
+    }
+
+
 }
