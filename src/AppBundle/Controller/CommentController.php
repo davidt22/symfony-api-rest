@@ -74,4 +74,61 @@ class CommentController extends Controller
 
         return $helpers->parseJson($data);
     }
+
+    public function deleteAction(Request $request, $id = null)
+    {
+        $helpers = $this->get('app.helpers');
+
+        $hash = $request->get('authorization');
+        $authCheck = $helpers->authCheck($hash);
+
+        if($authCheck) {
+            $identity = $helpers->authCheck($hash, true);
+
+            $userId = ($identity->sub) ? $identity->sub : null;
+
+            $em = $this->getDoctrine()->getManager();
+            $comment = $em->getRepository('BackendBundle:Comment')->findOneBy(array(
+                'id' => $id
+            ));
+
+            if(is_object($comment) && $userId != null){
+
+                if(isset($identity->sub) && $comment->getUser()->getId() == $identity->sub ||
+                    $identity->sub == $comment->getVideo()->getUser()->getId()){
+
+                    $em->remove($comment);
+                    $em->flush();
+
+                    $data = array(
+                        'status' => 'success',
+                        'code' => 200,
+                        'msg' => 'Comment deleted success'
+                    );
+
+                }else{
+                    $data = array(
+                        'status' => 'error',
+                        'code' => 400,
+                        'msg' => 'User is not comment owner'
+                    );
+                }
+            }else{
+                $data = array(
+                    'status' => 'error',
+                    'code' => 400,
+                    'msg' => 'Comment not deleted'
+                );
+            }
+
+        }else{
+            $data = array(
+                'status' => 'error',
+                'code' => 400,
+                'msg' => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->parseJson($data);
+    }
 }
