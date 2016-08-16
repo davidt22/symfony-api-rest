@@ -32,7 +32,6 @@ class Comment
      */
     private $user;
 
-
     /**
      * Get id
      *
