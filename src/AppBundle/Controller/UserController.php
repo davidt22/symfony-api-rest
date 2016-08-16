@@ -3,6 +3,7 @@
 namespace AppBundle\Controller;
 
 use BackendBundle\Entity\User;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
@@ -214,6 +215,48 @@ class UserController extends Controller
                 'status' => 'error',
                 'code' => 400,
                 'msg' => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->parseJson($data);
+    }
+
+    public function channelAction(Request $request, $id = null)
+    {
+        $helpers = $this->get('app.helpers');
+        /** @var EntityManager $em */
+        $em = $this->getDoctrine()->getManager();
+
+        $user = $em->getRepository('BackendBundle:User')->findOneBy(array(
+            'id' => $id
+        ));
+
+        $dql = 'SELECT v FROM BackendBundle:Video v WHERE v.user = '.$id.' ORDER BY v.id DESC';
+        $query = $em->createQuery($dql);
+
+        $page = $request->query->getInt('page', 1);
+        $paginator = $this->get('knp_paginator');
+        $itemsPerPage = 6;
+
+        $pagination = $paginator->paginate($query, $page, $itemsPerPage);
+        $totalItemsCount = $pagination->getTotalItemCount();
+
+        if(count($user) == 1) {
+
+            $data = array(
+                'status' => 'success',
+                'total_items_count' => $totalItemsCount,
+                'page_actual' => $page,
+                'items_per_page' => $itemsPerPage,
+                'total_pages' => ceil($totalItemsCount / $itemsPerPage),
+            );
+            $data['data']['videos'] = $pagination;
+            $data['data']['user'] = $user;
+        }else{
+            $data = array(
+                'status' => 'error',
+                'code' => 400,
+                'msg' => 'User not exists'
             );
         }
 
