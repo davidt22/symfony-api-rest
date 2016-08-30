@@ -15,7 +15,7 @@ class UserController extends Controller
     {
         $helpersService = $this->get('app.helpers');
 
-        $json = $request->get('json');//Por POST
+        $json = $request->get('json'); //Por POST
         $params = json_decode($json);
 
         $data = array(
@@ -29,18 +29,21 @@ class UserController extends Controller
             $createdAt = new \DateTime('now');
             $image = null;
             $role = 'user';
-            $email = isset($params->email) ? $params->email : null;
-            $name = isset($params->name) ? ctype_alpha($params->name) : null;
-            $surname = isset($params->surname) ? ctype_alpha($params->surname) : null;
-            $password = isset($params->password) ? $params->password : null;
+
+            $email = (isset($params->email)) ? $params->email : null;
+            $name = (isset($params->name) && ctype_alpha($params->name)) ? $params->name : null;
+            $surname = (isset($params->surname) && ctype_alpha($params->surname)) ? $params->surname : null;
+            $password = (isset($params->password)) ? $params->password : null;
 
             $emailContraint = new Email();
             $emailContraint->message = 'Email not valid';
             $validateEmail = $this->get('validator')->validate($email, $emailContraint);
 
-            if($email && count($validateEmail) == 0 && $password && $name && $surname){
+            if($email != null && count($validateEmail) == 0 &&
+                $password != null && $name != null && $surname != null
+            ){
                 $user = new User();
-                $user->setImage($createdAt);
+                $user->setCreatedAt($createdAt);
                 $user->setImage($image);
                 $user->setRole($role);
                 $user->setEmail($email);
@@ -51,7 +54,9 @@ class UserController extends Controller
                 $user->setPassword($pwd);
 
                 $em = $this->getDoctrine()->getManager();
-                $issetUser = $em->getRepository('BackendBundle:User')->findBy(array('email' => $email));
+                $issetUser = $em->getRepository('BackendBundle:User')->findBy(array(
+                    'email' => $email
+                ));
 
                 if(count($issetUser) == 0){
                     $em->persist($user);

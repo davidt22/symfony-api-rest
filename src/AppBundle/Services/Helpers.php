@@ -1,6 +1,7 @@
 <?php
 namespace AppBundle\Services;
 
+use Monolog\Logger;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
@@ -9,15 +10,19 @@ use Symfony\Component\Serializer\Serializer;
 class Helpers
 {
     private $jwtAuth;
+    /** @var Logger $logger */
+    private $logger;
 
     /**
      * Helpers constructor.
      *
      * @param JWTAuth $JWTAuth
+     * @param Logger $logger
      */
-    public function __construct(JWTAuth $JWTAuth)
+    public function __construct(JWTAuth $JWTAuth, Logger $logger)
     {
         $this->jwtAuth = $JWTAuth;
+        $this->logger = $logger;
     }
 
     public function authCheck($hash, $getIdentity = false)

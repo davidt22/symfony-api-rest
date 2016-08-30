@@ -63,7 +63,7 @@ class DefaultController extends Controller
 
             if(count($validateEmail) == 0 && $password != null){
 
-                if($getHash == null){
+                if($getHash == null || $getHash == 'false'){
                     $signup = $jwatAuthService->signup($email, $pwd);
                 }else{
                     $signup = $jwatAuthService->signup($email, $pwd, true);

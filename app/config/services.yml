@@ -9,7 +9,7 @@ services:
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
     app.helpers:
         class: AppBundle\Services\Helpers
-        arguments: ["@app.jwt_auth"]
+        arguments: ["@app.jwt_auth", "@logger"]
 
     app.jwt_auth:
         class: AppBundle\Services\JWTAuth
